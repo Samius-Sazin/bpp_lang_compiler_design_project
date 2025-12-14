@@ -1,4 +1,0 @@
-{
-  "buildCommand": "apt-get update && apt-get install -y python3 && npm run build",
-  "runtime": "nodejs20.x"
-}
