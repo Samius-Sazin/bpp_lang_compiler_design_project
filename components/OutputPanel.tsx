@@ -54,13 +54,13 @@ export default function OutputPanel({ text }: { text: string }) {
   return (
     <div className="space-y-3">
       {programOutput.length > 0 && (
-        <div className="rounded-lg border border-emerald-600 bg-emerald-950/40 p-3">
+        <div className="rounded-lg border border-emerald-600 bg-emerald-950/40 p-3 overflow-x-auto">
           <div className="text-emerald-400 font-semibold mb-2">Program Output</div>
           <div className="space-y-2">
             {programOutput.map((line, i) => (
               <div
                 key={i}
-                className="bg-gradient-to-r from-cyan-500 to-emerald-500 text-slate-950 px-3 py-2 rounded font-bold text-lg"
+                className="bg-gradient-to-r from-cyan-500 to-emerald-500 text-slate-950 px-3 py-2 rounded font-bold text-lg break-words"
               >
                 {line}
               </div>
@@ -69,16 +69,16 @@ export default function OutputPanel({ text }: { text: string }) {
         </div>
       )}
 
-      <div className="rounded-lg border border-slate-700 bg-slate-900/60 p-3 space-y-3">
+      <div className="rounded-lg border border-slate-700 bg-slate-900/60 p-3 space-y-3 overflow-x-auto">
         <div className="text-slate-400 font-semibold mb-2">Compiler Messages</div>
         {blocks.map((block, idx) => (
           <pre
             key={idx}
             className={block.type === 'highlight'
-              ? 'rounded border border-cyan-600 bg-cyan-950/40 text-slate-100 text-sm leading-6 px-2 py-2'
+              ? 'rounded border border-cyan-600 bg-cyan-950/40 text-slate-100 text-sm leading-6 px-2 py-2 whitespace-pre-wrap break-words'
               : block.type === 'error'
-              ? 'rounded border border-red-700 bg-red-950/40 text-red-200 text-sm leading-6 px-2 py-2'
-              : 'text-slate-300 text-sm leading-6'}
+              ? 'rounded border border-red-700 bg-red-950/40 text-red-200 text-sm leading-6 px-2 py-2 whitespace-pre-wrap break-words'
+              : 'text-slate-300 text-sm leading-6 whitespace-pre-wrap break-words'}
           >
             {block.lines.join('\n')}
           </pre>
