@@ -16,6 +16,9 @@
     "paths": {
       "@/components/*": [
         "components/*"
+      ],
+      "@/compiler/*": [
+        "compiler/*"
       ]
     },
     "allowJs": true,
