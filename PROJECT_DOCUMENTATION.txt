@@ -22,10 +22,10 @@ application with:
 - Responsive design for desktop and mobile
 - Examples dropdown in header for quick loading
 - One-click copy buttons in editor and help modal
-- Python-based compiler backend integrated with Next.js frontend
+- **TypeScript compiler backend** integrated with Next.js frontend (no Python dependency)
 
-The project is optimized for deployment to Vercel with all source code, compiler,
-and dependencies contained within the web/ folder.
+The project is optimized for deployment to Vercel using the default Node.js runtime; no
+custom build commands or additional runtimes are required.
 
 ================================================================================
 2. PROJECT GOALS & EVOLUTION
@@ -40,10 +40,11 @@ EVOLUTION OF GOALS:
 - Phase 1: Reorganize project structure (compiler/, desktop/, web/)
 - Phase 2: Focus on web-only deployment for Vercel
 - Phase 3: Build complete Next.js-based IDE with interactive editor
-- Phase 4: Implement Python compiler integration
+- Phase 4: Implement compiler integration
 - Phase 5: Polish UI/UX with help system and features
 - Phase 6: Add download and example functionality
-- Phase 7: Create comprehensive documentation
+- Phase 7: Rewrite compiler to TypeScript for Vercel (remove Python dependency)
+- Phase 8: Create comprehensive documentation
 
 FINAL GOAL:
 Deliver a production-ready web IDE that can be deployed to Vercel with a
@@ -54,32 +55,31 @@ single GitHub push, requiring no external dependencies or configurations.
 ================================================================================
 
 CURRENT FOLDER STRUCTURE:
-web/
-├── app/
-│   ├── page.tsx                    # Main IDE interface
-│   ├── layout.tsx                  # Root layout with metadata
-│   ├── globals.css                 # Global styling and CodeMirror customization
-│   └── api/
-│       └── run/
-│           └── route.ts            # API endpoint for code execution
-├── components/
-│   ├── CodeEditor.tsx              # CodeMirror-based editor component
-│   ├── OutputPanel.tsx             # Output display with parsing
-│   └── ExamplesMenu.tsx            # Example programs dropdown
-├── compiler/
-│   ├── lexer.py                    # Tokenization engine
-│   ├── parser.py                   # AST generation
-│   ├── ast_nodes.py                # AST node definitions
-│   ├── interpreter.py              # Code execution engine
-│   ├── main.py                     # Entry point for Python execution
-│   └── __init__.py                 # Python package marker
-├── package.json                    # Node.js dependencies
-├── tsconfig.json                   # TypeScript configuration
-├── next.config.js                  # Next.js configuration
-├── tailwind.config.js              # Tailwind CSS configuration
-├── postcss.config.js               # PostCSS configuration
-├── README.md                       # User-facing documentation
-└── PROJECT_DOCUMENTATION.txt       # This file
+app/
+├── page.tsx                    # Main IDE interface
+├── layout.tsx                  # Root layout with metadata
+├── globals.css                 # Global styling and CodeMirror customization
+└── api/
+  └── run/
+    └── route.ts            # API endpoint for code execution (calls TS compiler)
+components/
+├── OutputPanel.tsx             # Output display with parsing/styling
+└── ExamplesMenu.tsx            # Example programs dropdown
+compiler/
+├── lexer.ts                    # Tokenization engine (TypeScript)
+├── parser.ts                   # AST generation (TypeScript)
+├── ast_nodes.ts                # AST node definitions (TypeScript)
+├── interpreter.ts              # Execution engine (TypeScript)
+└── main.ts                     # Entry point / runCode pipeline
+public/
+└── icon.svg                    # Favicon
+package.json                    # Node.js dependencies
+tsconfig.json                   # TypeScript configuration (includes @/compiler alias)
+next.config.js                  # Next.js configuration with webpack alias for compiler
+tailwind.config.js              # Tailwind CSS configuration
+postcss.config.js               # PostCSS configuration
+README.md                       # User-facing documentation
+PROJECT_DOCUMENTATION.txt       # This file
 
 ARCHITECTURE OVERVIEW:
 
@@ -92,15 +92,14 @@ Frontend Layer (Next.js + React):
 
 API Layer (Node.js):
   - app/api/run/route.ts: Handles POST requests with code
-  - Creates temporary .bpp file
-  - Spawns Python subprocess to execute compiler
+  - Calls `runCode()` from the TypeScript compiler directly (no subprocess)
 
-Backend Layer (Python):
-  - compiler/lexer.py: Tokenizes source code
-  - compiler/parser.py: Builds Abstract Syntax Tree (AST)
-  - compiler/ast_nodes.py: Defines AST node classes
-  - compiler/interpreter.py: Executes AST and returns results
-  - compiler/main.py: Coordinates all phases and exports output
+Backend Layer (TypeScript):
+  - compiler/lexer.ts: Tokenizes source code
+  - compiler/parser.ts: Builds Abstract Syntax Tree (AST)
+  - compiler/ast_nodes.ts: Defines AST node classes
+  - compiler/interpreter.ts: Executes AST and collects output
+  - compiler/main.ts: Coordinates all phases and formats PHASE output
 
 ================================================================================
 4. TECHNOLOGY STACK
@@ -115,8 +114,8 @@ FRONTEND:
 - CodeMirror C++ Language Support (@codemirror/lang-cpp)
 
 BACKEND:
-- Node.js (API Runtime)
-- Python 3.x (Compiler Implementation)
+- Node.js runtime
+- TypeScript compiler implementation (lexer, parser, interpreter)
 
 STYLING:
 - Tailwind CSS for responsive design
@@ -127,7 +126,7 @@ STYLING:
 DEPLOYMENT:
 - Vercel (Platform)
 - GitHub (Version Control)
-- Environment: Node.js 18+ (Vercel default)
+- Environment: Node.js 18+ (Vercel default); no custom build command
 
 ================================================================================
 5. B++ LANGUAGE SPECIFICATION
@@ -198,8 +197,8 @@ Goal: Recreate full web app after accidental deletions
 Changes Made:
   - Restored complete Next.js application structure
   - Recreated all TypeScript components
-  - Restored Python compiler files
-  - Re-implemented API routes for code execution
+  - Recreated full TypeScript compiler stack
+  - Re-implemented API routes to call TS compiler directly
 
 PHASE 4: BUG FIX - TYPESCRIPT ERRORS
 Issue: "Cannot find module 'react'" and related TypeScript errors
@@ -208,13 +207,9 @@ Solution:
   - npm install --save-dev @types/react @types/react-dom @types/node
   - Updated package.json with dev dependencies
 
-PHASE 5: BUG FIX - PYTHON IMPORT ERRORS
-Issue: "ModuleNotFoundError: No module named 'compiler'"
-Root Cause: Relative imports failed when running main.py as standalone script
-Solution:
-  - Added sys.path.insert(0, str(THIS_DIR)) to compiler/main.py
-  - Changed "from compiler import" to "from ast_nodes import"
-  - Made imports relative to script directory
+PHASE 5: BUG FIX - COMPILER IMPORT ERRORS (LEGACY PYTHON)
+Issue: Python import errors (resolved historically)
+Note: Compiler now uses TypeScript; current path issues addressed via webpack alias @/compiler and tsconfig paths.
 
 PHASE 6: BUG FIX - CLIENT COMPONENT DIRECTIVE
 Issue: "You're importing useState. It only works in Client Component"
@@ -305,73 +300,32 @@ Changes Made:
 7. CRITICAL IMPLEMENTATION DETAILS
 ================================================================================
 
-PYTHON COMPILER PIPELINE:
+TYPESCRIPT COMPILER PIPELINE:
 
-1. LEXER (lexer.py)
-   Input: Raw b++ source code string
-   Process:
-     - Scan characters one by one
-     - Recognize keywords (dhori, dekhao, jodi, nahole, ghuri)
-     - Recognize operators (+, -, *, /, ==, >, <, >=, <=, &&, ||, =)
-     - Recognize identifiers and numbers
-     - Create Token objects with type and value
-   Output: List of Token objects
-   Example:
-     Input: "dhori x = 5;"
-     Output: [Token(KEYWORD, 'dhori'), Token(IDENT, 'x'), Token(ASSIGN, '='),
-              Token(NUMBER, 5), Token(SEMI, ';')]
+1. LEXER (lexer.ts)
+  - Tokenizes raw b++ source code
+  - Recognizes keywords (dhori, dekhao, jodi, nahole, ghuri)
+  - Supports arithmetic and comparison operators, identifiers, numbers
 
-2. PARSER (parser.py)
-   Input: List of Token objects
-   Process:
-     - Implement recursive descent parser
-     - Parse statements (variable declarations, assignments, prints, if/else, for loops)
-     - Parse expressions (binary operations, variables, literals)
-     - Build Abstract Syntax Tree (AST)
-   Output: Program node containing list of Statement nodes
-   Example:
-     Input: [Token(KEYWORD, 'dhori'), Token(IDENT, 'x'), ...]
-     Output: Program([VarDecl('x', Num(5))])
+2. PARSER (parser.ts)
+  - Recursive descent parser with operator precedence
+  - Builds AST for declarations, assignments, prints, if/else, for loops
 
-3. INTERPRETER (interpreter.py)
-   Input: AST Program node
-   Process:
-     - Maintain environment dictionary for variables
-     - Maintain output list for dekhao (print) statements
-     - Execute each statement:
-       * VarDecl: Add variable to environment
-       * AssignStmt: Update variable value
-       * PrintStmt: Add value to output list
-       * IfStmt: Evaluate condition, execute if/else branch
-       * ForStmt: Initialize counter, loop while condition true, execute body
-     - Evaluate expressions recursively
-   Output: Formatted string with all output and status
-   Example:
-     Input: Program([VarDecl('x', Num(5))])
-     Output: "x = 5" (displayed on screen)
+3. INTERPRETER (interpreter.ts)
+  - Executes AST within an environment map
+  - Collects output for `dekhao` statements
+  - Handles arithmetic and comparison operations (integers, floor divide)
 
-4. MAIN ENTRY (main.py)
-   Input: Source code string from command line
-   Process:
-     - Import lexer, parser, interpreter
-     - Run lexer to get tokens (PHASE 1)
-     - Run parser to get AST (PHASE 2)
-     - Run interpreter to execute AST (PHASE 3)
-     - Catch and format errors
-   Output: Formatted output showing all phases and results
-   Returns: JSON-compatible string with success status and output
+4. MAIN ENTRY (main.ts)
+  - `runCode(source: string): string`
+  - Runs PHASE 1/2/3, formats output blocks and errors
 
 API EXECUTION FLOW:
 
-1. Frontend (page.tsx) sends POST to /api/run with { code: "..." }
-2. API Handler (route.ts):
-   - Writes code to temporary .bpp file
-   - Spawns Python subprocess: python compiler/main.py < code.bpp
-   - Captures stdout and stderr
-   - Returns JSON response: { success, output, error }
-3. Frontend receives response and displays output in OutputPanel
-4. OutputPanel parses output to extract program values
-5. User sees formatted results with syntax highlighting
+1. Frontend (page.tsx) sends POST to /api/run with `{ code }`
+2. API Handler (route.ts) calls `runCode(code)` directly (no subprocess, no temp files)
+3. Returns JSON `{ success, output, error }`
+4. OutputPanel renders PHASE blocks, highlights errors in red
 
 ================================================================================
 8. TESTING & VALIDATION
@@ -619,9 +573,9 @@ VERCEL DEPLOYMENT:
 vercel              - Deploy using Vercel CLI
 vercel --prod       - Deploy to production
 
-PYTHON TESTING:
-python compiler/main.py - Run compiler directly (for debugging)
-cd compiler && python -m pytest - Run tests (if added)
+TYPESCRIPT TESTING:
+node -e "const { runCode } = require('./compiler/main'); console.log(runCode('dhori x = 5; dekhao x;'));" - Quick sanity check
+npm run dev / npm run build - Standard Next.js lifecycle
 
 ================================================================================
 15. FILE-BY-FILE IMPLEMENTATION DETAILS
