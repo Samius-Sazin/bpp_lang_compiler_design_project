@@ -63,15 +63,17 @@ export default function Page() {
     return (
         <div className="min-h-screen bg-gradient-to-b from-slate-950 to-slate-900 text-slate-200">
             <header className="border-b border-slate-800 bg-slate-950/60">
-                <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+                <div className="max-w-6xl mx-auto px-6 py-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                     <div>
                         <h1 className="text-2xl md:text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-blue-500">
                             b++ Web IDE
                         </h1>
                         <p className="text-slate-400 text-sm mt-1">Write b++ code and run it instantly.</p>
                     </div>
-                    <div className="hidden md:flex items-center gap-3">
-                        <ExamplesMenu onSelect={setCode} />
+                    <div className="md:flex items-center gap-3">
+                        <div className="hidden md:block">
+                            <ExamplesMenu onSelect={setCode} />
+                        </div>
                     </div>
                 </div>
             </header>
@@ -157,8 +159,8 @@ ghuri (dhori i = 0; i < 5; i = i + 1) {
             )}
 
             <div className="max-w-6xl mx-auto px-6 py-6">
-                <div className="mb-4 flex items-center justify-between">
-                    <div className="flex items-center gap-2">
+                <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                    <div className="flex flex-wrap items-center gap-2">
                         {/* Run */}
                         <button
                             onClick={runCode}
@@ -205,7 +207,8 @@ ghuri (dhori i = 0; i < 5; i = i + 1) {
                             Help
                         </button>
                     </div>
-                    <div className="md:hidden flex items-center gap-2">
+                    {/* Move Examples below controls on small screens */}
+                    <div className="md:hidden">
                         <ExamplesMenu onSelect={setCode} />
                     </div>
                 </div>
