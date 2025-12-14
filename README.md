@@ -116,7 +116,13 @@ The easiest way to deploy:
    - Go to [vercel.com](https://vercel.com)
    - Click "New Project"
    - Import your GitHub repository
-   - Root Directory: `web`
+   - Root Directory: `.` (root of this folder, or leave default)
+   - Vercel will automatically detect Next.js and build
+
+3. **Python Runtime on Vercel**
+   - A `vercel.json` file is included to install Python 3 during build
+   - If deployment fails with "python not found", ensure `vercel.json` exists at project root
+   - The build will install Python: `apt-get update && apt-get install -y python3`
    - Click "Deploy"
 
 ### Environment Variables
